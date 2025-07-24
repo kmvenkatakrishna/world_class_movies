@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Paper, Table, TableHead, TableRow, TableCell, TableBody, Stack, Typography, IconButton, TextField, Button, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
+import { Grid, Card, CardContent, CardMedia, Typography, IconButton, Box, CardActions, Fade } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import MovieIcon from '@mui/icons-material/Movie';
 
 const LOCAL_KEY = 'movies_db';
 
@@ -31,51 +31,75 @@ function MovieList({ searchTerm = '' }) {
   });
 
   return (
-    <>
-      <Paper sx={{ boxShadow: 6, borderRadius: 3, p: 2, background: 'rgba(35,35,54,0.98)' }}>
-        <Table sx={{ minWidth: 650 }}>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ color: 'primary.main', fontWeight: 700, fontSize: '1.1rem', letterSpacing: 0.5 }}>Title</TableCell>
-              <TableCell sx={{ color: 'primary.main', fontWeight: 700, fontSize: '1.1rem', letterSpacing: 0.5 }}>Language</TableCell>
-              <TableCell sx={{ color: 'primary.main', fontWeight: 700, fontSize: '1.1rem', letterSpacing: 0.5 }}>Genre</TableCell>
-              <TableCell sx={{ color: 'primary.main', fontWeight: 700, fontSize: '1.1rem', letterSpacing: 0.5 }}>Year</TableCell>
-              <TableCell sx={{ color: 'primary.main', fontWeight: 700, fontSize: '1.1rem', letterSpacing: 0.5 }}>Description</TableCell>
-              <TableCell sx={{ color: 'primary.main', fontWeight: 700, fontSize: '1.1rem', letterSpacing: 0.5 }}>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredMovies.map(movie => (
-              <TableRow
-                key={movie._id}
-                sx={{
-                  '&:hover': { backgroundColor: 'rgba(229,9,20,0.08)' },
-                  transition: 'background 0.2s',
-                }}
-              >
-                <TableCell sx={{ color: 'text.primary', fontWeight: 500 }}>{movie.title}</TableCell>
-                <TableCell sx={{ color: 'text.secondary' }}>{movie.language}</TableCell>
-                <TableCell sx={{ color: 'text.secondary' }}>{movie.genre}</TableCell>
-                <TableCell sx={{ color: 'text.secondary' }}>{movie.year}</TableCell>
-                <TableCell sx={{ color: 'text.secondary' }}>{movie.description}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => setMovies(movies.filter(m => m._id !== movie._id))} color="primary">
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-            {filteredMovies.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                  No movies found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </Paper>
-    </>
+    <Box sx={{ flexGrow: 1, mt: 2 }}>
+      <Grid container spacing={3}>
+        {filteredMovies.length === 0 && (
+          <Grid item xs={12}>
+            <Fade in={true}><Typography align="center" color="text.secondary" sx={{ fontStyle: 'italic', mt: 6, fontSize: 22 }}>No movies found.</Typography></Fade>
+          </Grid>
+        )}
+        {filteredMovies.map(movie => (
+          <Grid item xs={12} sm={6} md={4} lg={3} key={movie._id}>
+            <Card
+              sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                borderRadius: 3,
+                boxShadow: 6,
+                background: 'rgba(35,35,54,0.98)',
+                position: 'relative',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': {
+                  transform: 'scale(1.045) translateY(-4px)',
+                  boxShadow: '0 8px 32px 0 #e5091440',
+                },
+              }}
+            >
+              <Box sx={{ position: 'relative' }}>
+                <CardMedia
+                  sx={{ height: 180, background: 'linear-gradient(135deg, #232336 60%, #e50914 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  image={''}
+                  title={movie.title}
+                >
+                  <MovieIcon sx={{ fontSize: 64, color: '#fff', opacity: 0.18, position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)' }} />
+                </CardMedia>
+                <IconButton
+                  aria-label="delete"
+                  onClick={() => setMovies(movies.filter(m => m._id !== movie._id))}
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    color: 'primary.main',
+                    background: 'rgba(24,24,28,0.7)',
+                    zIndex: 2,
+                    '&:hover': { background: 'rgba(229,9,20,0.18)', color: '#fff' },
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+              <CardContent sx={{ flexGrow: 1, pb: 1 }}>
+                <Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 700, color: 'primary.main', letterSpacing: 0.5, mb: 0.5 }}>
+                  {movie.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  <b>Genre:</b> {movie.genre} &nbsp; <b>Year:</b> {movie.year}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                  <b>Language:</b> {movie.language}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', mt: 1 }}>
+                  {movie.description}
+                </Typography>
+              </CardContent>
+              <CardActions sx={{ minHeight: 12 }} />
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
   );
 }
 

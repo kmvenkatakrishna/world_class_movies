@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import {
-  Container, Paper, Stack, Typography, TextField, Button, MenuItem, Select, InputLabel, FormControl, FormHelperText, Snackbar, Alert
+  Container, Paper, Stack, Typography, TextField, Button, MenuItem, Select, InputLabel, FormControl, FormHelperText, Snackbar, Alert, InputAdornment
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import MovieIcon from '@mui/icons-material/Movie';
+import LanguageIcon from '@mui/icons-material/Language';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import NotesIcon from '@mui/icons-material/Notes';
 
 const LOCAL_KEY = 'movies_db';
 const GENRES = [
@@ -64,7 +68,14 @@ function AddMovie() {
               size="medium"
               fullWidth
               InputLabelProps={{ style: { color: '#fff' } }}
-              InputProps={{ style: { color: '#fff' } }}
+              InputProps={{
+                style: { color: '#fff' },
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <MovieIcon sx={{ color: 'primary.main' }} />
+                  </InputAdornment>
+                ),
+              }}
             />
             <TextField
               name="language"
@@ -77,7 +88,14 @@ function AddMovie() {
               size="medium"
               fullWidth
               InputLabelProps={{ style: { color: '#fff' } }}
-              InputProps={{ style: { color: '#fff' } }}
+              InputProps={{
+                style: { color: '#fff' },
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LanguageIcon sx={{ color: 'primary.main' }} />
+                  </InputAdornment>
+                ),
+              }}
             />
             <FormControl required error={!!errors.genre} fullWidth>
               <InputLabel sx={{ color: '#fff' }}>Genre</InputLabel>
@@ -106,7 +124,14 @@ function AddMovie() {
               fullWidth
               inputProps={{ min: 1800, max: new Date().getFullYear() + 1 }}
               InputLabelProps={{ style: { color: '#fff' } }}
-              InputProps={{ style: { color: '#fff' } }}
+              InputProps={{
+                style: { color: '#fff' },
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CalendarMonthIcon sx={{ color: 'primary.main' }} />
+                  </InputAdornment>
+                ),
+              }}
             />
             <TextField
               name="description"
@@ -120,7 +145,14 @@ function AddMovie() {
               size="medium"
               fullWidth
               InputLabelProps={{ style: { color: '#fff' } }}
-              InputProps={{ style: { color: '#fff' } }}
+              InputProps={{
+                style: { color: '#fff' },
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <NotesIcon sx={{ color: 'primary.main' }} />
+                  </InputAdornment>
+                ),
+              }}
             />
             <Stack direction="row" spacing={2} justifyContent="center">
               <Button type="submit" variant="contained" color="primary" size="large" sx={{ fontWeight: 600, letterSpacing: 1 }}>

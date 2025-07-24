@@ -59,6 +59,20 @@ function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
+      {/* Cinematic background */}
+      <Box
+        sx={{
+          position: 'fixed',
+          zIndex: -1,
+          width: '100vw',
+          height: '100vh',
+          top: 0,
+          left: 0,
+          background: `linear-gradient(120deg, #18181c 60%, #232336 100%), url('https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=1500&q=80') center/cover no-repeat`,
+          filter: 'blur(2.5px) brightness(0.7)',
+          opacity: 0.85,
+        }}
+      />
       <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       <Routes>
         <Route path="/" element={<HomePage searchTerm={searchTerm} />} />

@@ -2,6 +2,7 @@ import React from 'react';
 import { AppBar, Toolbar, Typography, Box, Button, InputBase, alpha } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
+import TheatersIcon from '@mui/icons-material/Theaters';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
@@ -80,10 +81,18 @@ function Header({ searchTerm, setSearchTerm }) {
     <StyledAppBar position="static">
       <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: '#e50914', mr: 4, letterSpacing: 1, cursor: 'pointer' }} onClick={() => navigate('/')}>Movie Databse</Typography>
+          <TheatersIcon sx={{ color: 'primary.main', fontSize: 36, mr: 1, mb: 0.3, filter: 'drop-shadow(0 2px 8px #e5091440)' }} />
+          <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'Bebas Neue, Montserrat, Arial', color: 'primary.main', mr: 4, letterSpacing: 2, cursor: 'pointer', textShadow: '0 2px 12px #e5091440' }} onClick={() => navigate('/')}>Movie Databse</Typography>
           <StyledLink to="/" className={location.pathname === '/' ? 'active' : ''}>Home</StyledLink>
         </Box>
-        <Search>
+        <Search sx={{
+          boxShadow: '0 0 0 0 #e50914',
+          transition: 'box-shadow 0.3s',
+          '&:focus-within': {
+            boxShadow: '0 0 0 3px #e50914',
+            backgroundColor: 'rgba(229,9,20,0.18)',
+          },
+        }}>
           <SearchIconWrapper>
             <SearchIcon />
           </SearchIconWrapper>
