@@ -5,27 +5,34 @@ import SearchIcon from '@mui/icons-material/Search';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
-  background: '#141414',
-  boxShadow: 'none',
+  background: 'rgba(20,20,20,0.95)',
+  boxShadow: '0 2px 16px 0 rgba(0,0,0,0.4)',
+  backdropFilter: 'blur(6px)',
 }));
 
 const StyledLink = styled(Link)(({ theme }) => ({
   color: '#fff',
   textDecoration: 'none',
-  marginRight: theme.spacing(3),
-  fontWeight: 500,
-  fontSize: '1.1rem',
+  marginRight: theme.spacing(4),
+  fontWeight: 600,
+  fontSize: '1.15rem',
+  letterSpacing: 0.5,
+  transition: 'color 0.2s',
+  '&:hover': {
+    color: '#e50914',
+  },
   '&.active': {
     borderBottom: '2px solid #e50914',
+    color: '#e50914',
   },
 }));
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha('#fff', 0.15),
+  backgroundColor: 'rgba(255,255,255,0.10)',
   '&:hover': {
-    backgroundColor: alpha('#fff', 0.25),
+    backgroundColor: 'rgba(255,255,255,0.18)',
   },
   marginLeft: 0,
   width: '100%',
@@ -33,6 +40,7 @@ const Search = styled('div')(({ theme }) => ({
     marginLeft: theme.spacing(1),
     width: 'auto',
   },
+  boxShadow: '0 1px 6px 0 rgba(0,0,0,0.18)',
 }));
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
@@ -48,11 +56,13 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: 'inherit',
+  fontWeight: 500,
   '& .MuiInputBase-input': {
-    padding: theme.spacing(1, 1, 1, 0),
+    padding: theme.spacing(1.2, 1, 1.2, 0),
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create('width'),
     width: '100%',
+    background: 'transparent',
     [theme.breakpoints.up('sm')]: {
       width: '20ch',
       '&:focus': {
