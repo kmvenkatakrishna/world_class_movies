@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { Container, Button, Typography, Box, CssBaseline } from '@mui/material';
+import { Button, Typography, Box, CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import MovieList from './MovieList';
 import AddMovie from './AddMovie';
+import MovieDetails from './MovieDetails';
 import Header from './Header';
+import LanguageList from './LanguageList';
+import LanguageMovies from './LanguageMovies';
 
 const darkTheme = createTheme({
   palette: {
@@ -43,14 +46,31 @@ const darkTheme = createTheme({
 function HomePage({ searchTerm }) {
   const navigate = useNavigate();
   return (
-    <Container maxWidth="md" sx={{ mt: 5 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
-        <Button variant="contained" color="primary" size="large" onClick={() => navigate('/add')}>
+    <Box sx={{ width: '100%', px: { xs: 2, sm: 4, md: 6 }, pb: 6 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 4, mt: 2 }}>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          size="large" 
+          onClick={() => navigate('/add')}
+          sx={{
+            borderRadius: 2,
+            px: 3,
+            py: 1.5,
+            fontSize: '1.1rem',
+            fontWeight: 600,
+            textTransform: 'none',
+            boxShadow: '0 4px 16px rgba(229, 9, 20, 0.3)',
+            '&:hover': {
+              boxShadow: '0 6px 20px rgba(229, 9, 20, 0.4)',
+            }
+          }}
+        >
           Add Movie
         </Button>
       </Box>
       <MovieList searchTerm={searchTerm} />
-    </Container>
+    </Box>
   );
 }
 
@@ -77,6 +97,9 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage searchTerm={searchTerm} />} />
         <Route path="/add" element={<AddMovie />} />
+        <Route path="/movie/:id" element={<MovieDetails />} />
+        <Route path="/languages" element={<LanguageList />} />
+        <Route path="/language/:lang" element={<LanguageMovies />} />
       </Routes>
     </ThemeProvider>
   );

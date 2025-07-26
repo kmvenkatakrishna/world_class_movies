@@ -9,6 +9,7 @@ const StyledAppBar = styled(AppBar)(({ theme }) => ({
   background: 'rgba(20,20,20,0.95)',
   boxShadow: '0 2px 16px 0 rgba(0,0,0,0.4)',
   backdropFilter: 'blur(6px)',
+  borderBottom: '1px solid rgba(255,255,255,0.1)',
 }));
 
 const StyledLink = styled(Link)(({ theme }) => ({
@@ -79,11 +80,39 @@ function Header({ searchTerm, setSearchTerm }) {
 
   return (
     <StyledAppBar position="static">
-      <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+      <Toolbar sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between',
+        px: { xs: 2, sm: 4, md: 6 },
+        py: 1
+      }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <TheatersIcon sx={{ color: 'primary.main', fontSize: 36, mr: 1, mb: 0.3, filter: 'drop-shadow(0 2px 8px #e5091440)' }} />
-          <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'Bebas Neue, Montserrat, Arial', color: 'primary.main', mr: 4, letterSpacing: 2, cursor: 'pointer', textShadow: '0 2px 12px #e5091440' }} onClick={() => navigate('/')}>Movie Databse</Typography>
-          <StyledLink to="/" className={location.pathname === '/' ? 'active' : ''}>Home</StyledLink>
+          <TheatersIcon sx={{ 
+            color: 'primary.main', 
+            fontSize: 36, 
+            mr: 1, 
+            mb: 0.3, 
+            filter: 'drop-shadow(0 2px 8px #e5091440)' 
+          }} />
+          <Typography 
+            variant="h5" 
+            sx={{ 
+              fontWeight: 900, 
+              fontFamily: 'Bebas Neue, Montserrat, Arial', 
+              color: 'primary.main', 
+              mr: 4, 
+              letterSpacing: 2, 
+              cursor: 'pointer', 
+              textShadow: '0 2px 12px #e5091440',
+              fontSize: { xs: '1.5rem', sm: '2rem' }
+            }} 
+            onClick={() => navigate('/')}
+          >
+            Movie Database
+          </Typography>
+          <StyledLink to="/" className={location.pathname === '/' ? 'active' : ''}>
+            Home
+          </StyledLink>
         </Box>
         <Search sx={{
           boxShadow: '0 0 0 0 #e50914',
