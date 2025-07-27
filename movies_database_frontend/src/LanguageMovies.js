@@ -11,13 +11,45 @@ const LOCAL_KEY = 'movies_db';
 function LanguageMovies() {
   const { lang } = useParams();
   const [movies, setMovies] = useState([]);
+  const [languageName, setLanguageName] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
     const stored = localStorage.getItem(LOCAL_KEY);
     if (stored) {
       const allMovies = JSON.parse(stored);
-      setMovies(allMovies.filter(m => m.language && m.language.trim().toLowerCase() === decodeURIComponent(lang).toLowerCase()));
+      const decodedLang = decodeURIComponent(lang);
+      setLanguageName(decodedLang);
+      
+      console.log('Debug - All movies:', allMovies);
+      console.log('Debug - Searching for language:', decodedLang);
+      
+      // More robust language filtering - check for exact match first, then case-insensitive
+      const filteredMovies = allMovies.filter(movie => {
+        if (!movie.language) return false;
+        
+        const movieLang = movie.language.trim();
+        const searchLang = decodedLang.trim();
+        
+        console.log('Debug - Comparing:', movieLang, 'with', searchLang);
+        
+        // Exact match
+        if (movieLang === searchLang) {
+          console.log('Debug - Exact match found for:', movie.title);
+          return true;
+        }
+        
+        // Case-insensitive match
+        if (movieLang.toLowerCase() === searchLang.toLowerCase()) {
+          console.log('Debug - Case-insensitive match found for:', movie.title);
+          return true;
+        }
+        
+        return false;
+      });
+      
+      console.log('Debug - Filtered movies:', filteredMovies);
+      setMovies(filteredMovies);
     }
   }, [lang]);
 
@@ -37,10 +69,10 @@ function LanguageMovies() {
         Back to Home
       </Button>
       <Typography variant="h3" sx={{ color: 'primary.main', fontWeight: 900, mb: 4, textAlign: 'center' }}>
-        Movies in {decodeURIComponent(lang)}
+        {languageName} Movies
       </Typography>
       {movies.length === 0 ? (
-        <Fade in={true}><Typography align="center" color="text.secondary" sx={{ fontStyle: 'italic', mt: 6, fontSize: 22 }}>No movies found in this language.</Typography></Fade>
+        <Fade in={true}><Typography align="center" color="text.secondary" sx={{ fontStyle: 'italic', mt: 6, fontSize: 22 }}>No movies found in {languageName}.</Typography></Fade>
       ) : (
         <Grid container spacing={4}>
           {movies.map(movie => (

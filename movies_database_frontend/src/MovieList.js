@@ -1,23 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Grid, 
   Card, 
-  CardContent, 
   CardMedia, 
   Typography, 
   IconButton, 
   Box, 
-  CardActions, 
-  Fade,
-  Chip,
-  Divider
+  Chip
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MovieIcon from '@mui/icons-material/Movie';
 import StarIcon from '@mui/icons-material/Star';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import LanguageIcon from '@mui/icons-material/Language';
 
 const LOCAL_KEY = 'movies_db';
 
@@ -276,9 +270,9 @@ function MovieSection({ title, movies, onDelete, icon }) {
 
 function MovieList({ searchTerm = '' }) {
   const [movies, setMovies] = useState(getInitialMovies());
-  const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('Debug - Saving movies to localStorage:', movies);
     localStorage.setItem(LOCAL_KEY, JSON.stringify(movies));
   }, [movies]);
 
@@ -303,21 +297,8 @@ function MovieList({ searchTerm = '' }) {
     return acc;
   }, {});
 
-  // Group movies by language
-  const moviesByLanguage = filteredMovies.reduce((acc, movie) => {
-    const lang = movie.language || 'Other';
-    if (!acc[lang]) acc[lang] = [];
-    acc[lang].push(movie);
-    return acc;
-  }, {});
-
   // Get recommended movies
   const recommendedMovies = filteredMovies.filter(movie => movie.recommended);
-
-  // Top 4 languages by count
-  const topLanguages = Object.entries(moviesByLanguage)
-    .sort((a, b) => b[1].length - a[1].length)
-    .slice(0, 4);
 
   if (filteredMovies.length === 0) {
     return (
@@ -363,36 +344,7 @@ function MovieList({ searchTerm = '' }) {
         />
       ))}
 
-      {/* Languages Section */}
-      <Box sx={{ mb: 6 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <LanguageIcon sx={{ fontSize: 32, color: 'primary.main' }} />
-            <Typography 
-              variant="h4" 
-              sx={{ fontWeight: 700, color: '#fff', ml: 1, fontSize: { xs: '1.5rem', sm: '2rem' } }}
-            >
-              Languages
-            </Typography>
-          </Box>
-          <Typography 
-            variant="body1"
-            sx={{ color: 'primary.main', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', ml: 2 }}
-            onClick={() => navigate('/languages')}
-          >
-            View All
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-          {topLanguages.map(([lang, langMovies]) => (
-            <Box key={lang} sx={{ minWidth: 180, maxWidth: 220, flex: 1, background: 'rgba(35,35,54,0.98)', borderRadius: 3, boxShadow: 4, p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', transition: 'all 0.2s', '&:hover': { boxShadow: 8, background: 'rgba(229,9,20,0.08)' } }} onClick={() => navigate(`/language/${encodeURIComponent(lang)}`)}>
-              <LanguageIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-              <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700, mb: 0.5 }}>{lang}</Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500 }}>{langMovies.length} movie{langMovies.length > 1 ? 's' : ''}</Typography>
-            </Box>
-          ))}
-        </Box>
-      </Box>
+
     </Box>
   );
 }
