@@ -6,12 +6,18 @@ import {
   Typography, 
   IconButton, 
   Box, 
-  Chip
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MovieIcon from '@mui/icons-material/Movie';
 import StarIcon from '@mui/icons-material/Star';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import WarningIcon from '@mui/icons-material/Warning';
 
 const LOCAL_KEY = 'movies_db';
 
@@ -87,11 +93,6 @@ function MovieCard({ movie, onDelete }) {
 
   const handleCardClick = () => {
     navigate(`/movie/${movie._id}`);
-  };
-
-  const handleDeleteClick = (e) => {
-    e.stopPropagation();
-    onDelete(movie._id);
   };
 
   return (
@@ -174,7 +175,7 @@ function MovieCard({ movie, onDelete }) {
           {/* Delete Button */}
           <IconButton
             aria-label="delete"
-            onClick={handleDeleteClick}
+            onClick={(e) => onDelete(e, movie)}
             sx={{
               position: 'absolute',
               bottom: 8,
@@ -203,7 +204,7 @@ function MovieCard({ movie, onDelete }) {
             background: 'linear-gradient(transparent, rgba(0,0,0,0.9))',
             color: '#fff',
             padding: 2,
-            opacity: 0,
+            opacity: 1,
             transition: 'opacity 0.3s ease',
           }}
         >
@@ -270,11 +271,59 @@ function MovieSection({ title, movies, onDelete, icon }) {
 
 function MovieList({ searchTerm = '' }) {
   const [movies, setMovies] = useState(getInitialMovies());
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [movieToDelete, setMovieToDelete] = useState(null);
 
   useEffect(() => {
-    console.log('Debug - Saving movies to localStorage:', movies);
     localStorage.setItem(LOCAL_KEY, JSON.stringify(movies));
   }, [movies]);
+
+  // Listen for localStorage changes from other components
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === LOCAL_KEY) {
+        const stored = localStorage.getItem(LOCAL_KEY);
+        if (stored) {
+          setMovies(JSON.parse(stored));
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    const handleCustomStorageChange = () => {
+      const stored = localStorage.getItem(LOCAL_KEY);
+      if (stored) {
+        setMovies(JSON.parse(stored));
+      }
+    };
+    
+    window.addEventListener('localStorageChange', handleCustomStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageChange', handleCustomStorageChange);
+    };
+  }, []);
+
+  const handleDeleteClick = (e, movie) => {
+    e.stopPropagation();
+    setMovieToDelete(movie);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (movieToDelete) {
+      setMovies(movies.filter(m => m._id !== movieToDelete._id));
+      setDeleteDialogOpen(false);
+      setMovieToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setMovieToDelete(null);
+  };
 
   const handleDelete = (movieId) => {
     setMovies(movies.filter(m => m._id !== movieId));
@@ -328,7 +377,7 @@ function MovieList({ searchTerm = '' }) {
         <MovieSection
           title="Recommended for You"
           movies={recommendedMovies}
-          onDelete={handleDelete}
+          onDelete={handleDeleteClick}
           icon={<TrendingUpIcon sx={{ fontSize: 32, color: 'primary.main' }} />}
         />
       )}
@@ -339,12 +388,33 @@ function MovieList({ searchTerm = '' }) {
           key={genre}
           title={genre}
           movies={genreMovies}
-          onDelete={handleDelete}
+          onDelete={handleDeleteClick}
           icon={<MovieIcon sx={{ fontSize: 32, color: 'primary.main' }} />}
         />
       ))}
 
-
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography id="delete-dialog-description">
+            Are you sure you want to delete "{movieToDelete?.title}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Container, Typography, TextField, Button, MenuItem, Select, InputLabel, FormControl, FormHelperText, Snackbar, Alert, InputAdornment, Switch, FormControlLabel, Slider, Box, Grid, Card, CardContent, Divider, Chip, IconButton, Paper, Stepper, Step, StepLabel
+  Container, Typography, TextField, Button, MenuItem, Select, InputLabel, FormControl, FormHelperText, Snackbar, Alert, InputAdornment, Switch, FormControlLabel, Slider, Box, Grid, Card, CardContent, Divider, Chip, IconButton, Paper, Stepper, Step, StepLabel, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MovieIcon from '@mui/icons-material/Movie';
@@ -15,10 +15,21 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import TvIcon from '@mui/icons-material/Tv';
 import PublicIcon from '@mui/icons-material/Public';
 import AccessTime from '@mui/icons-material/AccessTime';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const LOCAL_KEY = 'movies_db';
 const GENRES = [
   'Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Drama', 'Fantasy', 'Horror', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'Other'
+];
+
+const LANGUAGES = [
+  'English', 'Hindi', 'Bengali', 'Telugu', 'Marathi', 'Tamil', 'Gujarati', 
+  'Kannada', 'Malayalam', 'Punjabi', 'Odia', 'Assamese', 'Sanskrit',
+  'Urdu', 'Kashmiri', 'Konkani', 'Manipuri', 'Nepali', 'Sindhi',
+  'Korean', 'Japanese', 'Chinese', 'Spanish', 'French', 'German', 'Italian',
+  'Portuguese', 'Russian', 'Arabic', 'Turkish', 'Thai', 'Vietnamese',
+  'Indonesian', 'Filipino', 'Swedish', 'Norwegian', 'Danish', 'Dutch',
+  'Polish', 'Czech', 'Hungarian', 'Greek', 'Hebrew', 'Persian'
 ];
 
 const STREAMING_PLATFORMS = [
@@ -56,7 +67,12 @@ function AddMovie() {
   const [errors, setErrors] = useState({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [newPlatform, setNewPlatform] = useState('');
+  const [expanded, setExpanded] = useState('basic'); // Only basic section expanded by default
   const navigate = useNavigate();
+
+  const handleAccordionChange = (panel) => (event, isExpanded) => {
+    setExpanded(isExpanded ? panel : false);
+  };
 
   const validate = () => {
     const newErrors = {};
@@ -114,6 +130,10 @@ function AddMovie() {
     };
     movies.push(newMovie);
     localStorage.setItem(LOCAL_KEY, JSON.stringify(movies));
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new Event('localStorageChange'));
+    
     setSnackbarOpen(true);
     setTimeout(() => navigate('/'), 1000);
   };
@@ -172,453 +192,524 @@ function AddMovie() {
         </Stepper>
 
         <form onSubmit={handleSubmit} autoComplete="off">
-          <Grid container spacing={4}>
-            {/* Basic Info Section */}
-            <Grid item xs={12}>
-              <Paper elevation={4} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 4, mb: 0, boxShadow: 6 }}>
-                <Typography variant="h5" sx={{ color: 'primary.main', fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
-                  <MovieIcon sx={{ color: 'primary.main', fontSize: 28 }} /> Basic Information
-                </Typography>
-                <Grid container spacing={3} alignItems="center">
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      name="title"
-                      label="Movie Title"
-                      value={form.title}
-                      onChange={handleChange}
-                      required
-                      error={!!errors.title}
-                      helperText={errors.title || 'Enter the movie title'}
-                      size="large"
-                      fullWidth
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{
-                        style: { color: '#fff', fontSize: '1.1rem', fontWeight: 500 },
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <MovieIcon sx={{ color: 'primary.main', fontSize: 24 }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      name="language"
-                      label="Language"
-                      value={form.language}
-                      onChange={handleChange}
-                      required
-                      error={!!errors.language}
-                      helperText={errors.language || 'e.g. English, Hindi, Korean'}
-                      size="large"
-                      fullWidth
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{
-                        style: { color: '#fff', fontSize: '1.1rem' },
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <LanguageIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <FormControl required error={!!errors.genre} fullWidth>
-                      <InputLabel sx={{ color: '#fff', fontWeight: 600 }}>Genre</InputLabel>
-                      <Select
-                        name="genre"
-                        value={form.genre}
-                        label="Genre"
-                        onChange={handleChange}
-                        sx={{ color: '#fff', fontSize: '1.1rem', '& .MuiSvgIcon-root': { color: '#fff' } }}
-                      >
-                        {GENRES.map(g => (
-                          <MenuItem key={g} value={g} sx={{ fontSize: '1rem' }}>{g}</MenuItem>
-                        ))}
-                      </Select>
-                      <FormHelperText sx={{ color: errors.genre ? 'error.main' : '#b3b3b3' }}>{errors.genre || 'Select a genre'}</FormHelperText>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      name="year"
-                      label="Release Year"
-                      value={form.year}
-                      onChange={handleChange}
-                      type="number"
-                      error={!!errors.year}
-                      helperText={errors.year || 'e.g. 2023'}
-                      size="large"
-                      fullWidth
-                      inputProps={{ min: 1800, max: new Date().getFullYear() + 1 }}
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{
-                        style: { color: '#fff', fontSize: '1.1rem' },
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <CalendarMonthIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      name="description"
-                      label="Movie Description"
-                      value={form.description}
-                      onChange={handleChange}
-                      multiline
-                      minRows={3}
-                      maxRows={6}
-                      helperText="Tell us about the movie plot, characters, and what makes it special"
-                      size="large"
-                      fullWidth
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{
-                        style: { color: '#fff', fontSize: '1rem' },
-                        startAdornment: (
-                          <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 2 }}>
-                            <NotesIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
+          {/* Basic Information Accordion - Always Expanded */}
+          <Accordion 
+            expanded={expanded === 'basic'} 
+            onChange={handleAccordionChange('basic')}
+            sx={{ 
+              mb: 2, 
+              background: 'rgba(35,35,54,0.95)',
+              border: '1px solid rgba(229, 9, 20, 0.2)',
+              borderRadius: 2,
+              '&:before': { display: 'none' },
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: '#fff' }} />}
+              sx={{ 
+                background: 'linear-gradient(45deg, #e50914, #ff6b6b)',
+                color: '#fff',
+                borderRadius: '8px 8px 0 0'
+              }}
+            >
+              <Typography variant="h5" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MovieIcon sx={{ fontSize: 28 }} /> Basic Information
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 4 }}>
+              <Grid container spacing={3} alignItems="center">
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="title"
+                    label="Movie Title"
+                    value={form.title}
+                    onChange={handleChange}
+                    required
+                    error={!!errors.title}
+                    helperText={errors.title || 'Enter the movie title'}
+                    size="large"
+                    fullWidth
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{
+                      style: { color: '#fff', fontSize: '1.1rem', fontWeight: 500 },
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <MovieIcon sx={{ color: 'primary.main', fontSize: 24 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
                 </Grid>
-              </Paper>
-            </Grid>
-
-            {/* Ratings Section */}
-            <Grid item xs={12}>
-              <Paper elevation={4} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 4, mb: 0, boxShadow: 6 }}>
-                <Typography variant="h5" sx={{ color: 'primary.main', fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
-                  <StarIcon sx={{ color: 'primary.main', fontSize: 28 }} /> Ratings & Reviews
-                </Typography>
-                <Grid container spacing={3} alignItems="center">
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ p: 2, borderRadius: 2, background: 'rgba(0,0,0,0.08)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <Typography variant="subtitle1" sx={{ color: '#fff', mb: 2, display: 'flex', alignItems: 'center' }}>
-                        <StarIcon sx={{ color: '#ffd700', mr: 1 }} /> Your Rating: {form.rating}/5.0
-                      </Typography>
-                      <Slider
-                        value={form.rating}
-                        onChange={handleRatingChange}
-                        min={0}
-                        max={5}
-                        step={0.1}
-                        marks={[
-                          { value: 0, label: '0' },
-                          { value: 2.5, label: '2.5' },
-                          { value: 5, label: '5' }
-                        ]}
-                        sx={{
-                          color: '#ffd700',
-                          '& .MuiSlider-markLabel': { color: '#fff', fontWeight: 600 },
-                          '& .MuiSlider-track': { background: 'linear-gradient(90deg, #ffd700, #ffed4e)', height: 6 },
-                          '& .MuiSlider-thumb': { background: '#ffd700', boxShadow: '0 4px 12px rgba(255, 215, 0, 0.4)', width: 20, height: 20 },
-                          '& .MuiSlider-rail': { background: 'rgba(255,255,255,0.2)', height: 6 }
-                        }}
-                      />
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} sm={2}>
-                    <TextField
-                      name="imdbRating"
-                      label="IMDb"
-                      value={form.imdbRating}
-                      onChange={handleChange}
-                      type="number"
-                      error={!!errors.imdbRating}
-                      helperText={errors.imdbRating || '0-10'}
-                      size="large"
-                      fullWidth
-                      inputProps={{ min: 0, max: 10, step: 0.1 }}
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{
-                        style: { color: '#fff', fontSize: '1.1rem' },
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <StarIcon sx={{ color: '#ffd700', fontSize: 20 }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={2}>
-                    <TextField
-                      name="rottenTomatoesRating"
-                      label="Rotten (%)"
-                      value={form.rottenTomatoesRating}
-                      onChange={handleChange}
-                      type="number"
-                      error={!!errors.rottenTomatoesRating}
-                      helperText={errors.rottenTomatoesRating || '0-100'}
-                      size="large"
-                      fullWidth
-                      inputProps={{ min: 0, max: 100 }}
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{
-                        style: { color: '#fff', fontSize: '1.1rem' },
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <PublicIcon sx={{ color: '#ff6b35', fontSize: 20 }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={2}>
-                    <TextField
-                      name="metacriticRating"
-                      label="Metacritic"
-                      value={form.metacriticRating}
-                      onChange={handleChange}
-                      type="number"
-                      error={!!errors.metacriticRating}
-                      helperText={errors.metacriticRating || '0-100'}
-                      size="large"
-                      fullWidth
-                      inputProps={{ min: 0, max: 100 }}
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{
-                        style: { color: '#fff', fontSize: '1.1rem' },
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <StarIcon sx={{ color: '#00d4aa', fontSize: 20 }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Grid>
-
-            {/* Streaming Platforms Section */}
-            <Grid item xs={12}>
-              <Paper elevation={4} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 4, mb: 0, boxShadow: 6 }}>
-                <Typography variant="h5" sx={{ color: 'primary.main', fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
-                  <TvIcon sx={{ color: 'primary.main', fontSize: 28 }} /> Streaming Platforms
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-                  <FormControl fullWidth sx={{ maxWidth: 300 }}>
-                    <InputLabel sx={{ color: '#fff' }}>Add Platform</InputLabel>
+                <Grid item xs={12} sm={6}>
+                  <FormControl required error={!!errors.language} fullWidth>
+                    <InputLabel sx={{ color: '#fff', fontWeight: 600 }}>Language</InputLabel>
                     <Select
-                      value={newPlatform}
-                      onChange={(e) => setNewPlatform(e.target.value)}
-                      sx={{ color: '#fff', '& .MuiSvgIcon-root': { color: '#fff' } }}
+                      name="language"
+                      value={form.language}
+                      label="Language"
+                      onChange={handleChange}
+                      sx={{ color: '#fff', fontSize: '1.1rem', '& .MuiSvgIcon-root': { color: '#fff' } }}
                     >
-                      {STREAMING_PLATFORMS.map(platform => (
-                        <MenuItem key={platform} value={platform} sx={{ fontSize: '1rem' }}>
-                          {platform}
-                        </MenuItem>
+                      {LANGUAGES.map(lang => (
+                        <MenuItem key={lang} value={lang} sx={{ fontSize: '1rem' }}>{lang}</MenuItem>
                       ))}
                     </Select>
+                    <FormHelperText sx={{ color: errors.language ? 'error.main' : '#b3b3b3' }}>{errors.language || 'Select a language'}</FormHelperText>
                   </FormControl>
-                  <Button
-                    variant="contained"
-                    onClick={handleAddPlatform}
-                    disabled={!newPlatform}
-                    sx={{
-                      background: 'linear-gradient(45deg, #e50914, #ff6b6b)',
-                      '&:hover': {
-                        background: 'linear-gradient(45deg, #ff6b6b, #e50914)',
-                      }
-                    }}
-                  >
-                    Add
-                  </Button>
-                </Box>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {form.streamingPlatforms.map((platform, index) => (
-                    <Chip
-                      key={index}
-                      label={platform}
-                      onDelete={() => handleRemovePlatform(platform)}
-                      deleteIcon={<DeleteIcon />}
-                      sx={{
-                        background: 'linear-gradient(45deg, #e50914, #ff6b6b)',
-                        color: '#fff',
-                        fontWeight: 600,
-                        '& .MuiChip-deleteIcon': {
-                          color: '#fff',
-                          '&:hover': {
-                            color: '#ffd700',
-                          }
-                        }
-                      }}
-                    />
-                  ))}
-                </Box>
-              </Paper>
-            </Grid>
-
-            {/* Additional Info Section */}
-            <Grid item xs={12}>
-              <Paper elevation={4} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 4, mb: 0, boxShadow: 6 }}>
-                <Typography variant="h5" sx={{ color: 'primary.main', fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
-                  <NotesIcon sx={{ color: 'primary.main', fontSize: 28 }} /> Additional Information
-                </Typography>
-                <Grid container spacing={3} alignItems="center">
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      name="director"
-                      label="Director"
-                      value={form.director}
-                      onChange={handleChange}
-                      helperText="e.g. Christopher Nolan"
-                      size="large"
-                      fullWidth
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{ style: { color: '#fff', fontSize: '1.1rem' } }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      name="cast"
-                      label="Cast"
-                      value={form.cast}
-                      onChange={handleChange}
-                      helperText="e.g. Leonardo DiCaprio, Ellen Page"
-                      size="large"
-                      fullWidth
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{ style: { color: '#fff', fontSize: '1.1rem' } }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      name="runtime"
-                      label="Runtime (minutes)"
-                      value={form.runtime}
-                      onChange={handleChange}
-                      type="number"
-                      helperText="e.g. 120"
-                      size="large"
-                      fullWidth
-                      inputProps={{ min: 1, max: 999 }}
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{ style: { color: '#fff', fontSize: '1.1rem' }, startAdornment: (
-                        <InputAdornment position="start">
-                          <AccessTime sx={{ color: 'primary.main', fontSize: 20 }} />
-                        </InputAdornment>
-                      ) }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      name="budget"
-                      label="Budget"
-                      value={form.budget}
-                      onChange={handleChange}
-                      helperText="e.g. $160 million"
-                      size="large"
-                      fullWidth
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{ style: { color: '#fff', fontSize: '1.1rem' } }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      name="boxOffice"
-                      label="Box Office"
-                      value={form.boxOffice}
-                      onChange={handleChange}
-                      helperText="e.g. $836 million"
-                      size="large"
-                      fullWidth
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{ style: { color: '#fff', fontSize: '1.1rem' } }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      name="awards"
-                      label="Awards"
-                      value={form.awards}
-                      onChange={handleChange}
-                      helperText="e.g. Academy Award for Best Picture"
-                      size="large"
-                      fullWidth
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{ style: { color: '#fff', fontSize: '1.1rem' } }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      name="trailerUrl"
-                      label="Trailer URL"
-                      value={form.trailerUrl}
-                      onChange={handleChange}
-                      helperText="e.g. https://youtube.com/watch?v=..."
-                      size="large"
-                      fullWidth
-                      InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
-                      InputProps={{ style: { color: '#fff', fontSize: '1.1rem' } }}
-                    />
-                  </Grid>
                 </Grid>
-              </Paper>
-            </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl required error={!!errors.genre} fullWidth>
+                    <InputLabel sx={{ color: '#fff', fontWeight: 600 }}>Genre</InputLabel>
+                    <Select
+                      name="genre"
+                      value={form.genre}
+                      label="Genre"
+                      onChange={handleChange}
+                      sx={{ color: '#fff', fontSize: '1.1rem', '& .MuiSvgIcon-root': { color: '#fff' } }}
+                    >
+                      {GENRES.map(g => (
+                        <MenuItem key={g} value={g} sx={{ fontSize: '1rem' }}>{g}</MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText sx={{ color: errors.genre ? 'error.main' : '#b3b3b3' }}>{errors.genre || 'Select a genre'}</FormHelperText>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="year"
+                    label="Release Year"
+                    value={form.year}
+                    onChange={handleChange}
+                    type="number"
+                    error={!!errors.year}
+                    helperText={errors.year || 'e.g. 2023'}
+                    size="large"
+                    fullWidth
+                    inputProps={{ min: 1800, max: new Date().getFullYear() + 1 }}
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{
+                      style: { color: '#fff', fontSize: '1.1rem' },
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CalendarMonthIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    name="description"
+                    label="Movie Description"
+                    value={form.description}
+                    onChange={handleChange}
+                    multiline
+                    minRows={3}
+                    maxRows={6}
+                    helperText="Tell us about the movie plot, characters, and what makes it special"
+                    size="large"
+                    fullWidth
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{
+                      style: { color: '#fff', fontSize: '1rem' },
+                      startAdornment: (
+                        <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 2 }}>
+                          <NotesIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
 
-            {/* Recommended Switch & Submit */}
-            <Grid item xs={12}>
-              <Paper elevation={2} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 4, mb: 0, boxShadow: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={form.recommended}
-                      onChange={handleRecommendedChange}
+          {/* Ratings Section Accordion */}
+          <Accordion 
+            expanded={expanded === 'ratings'} 
+            onChange={handleAccordionChange('ratings')}
+            sx={{ 
+              mb: 2, 
+              background: 'rgba(35,35,54,0.95)',
+              border: '1px solid rgba(229, 9, 20, 0.2)',
+              borderRadius: 2,
+              '&:before': { display: 'none' },
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: '#fff' }} />}
+              sx={{ 
+                background: 'rgba(0,0,0,0.3)',
+                color: '#fff',
+                borderRadius: '8px 8px 0 0'
+              }}
+            >
+              <Typography variant="h5" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <StarIcon sx={{ fontSize: 28, color: '#ffd700' }} /> Ratings & Reviews
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 4 }}>
+              <Grid container spacing={3} alignItems="center">
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ p: 2, borderRadius: 2, background: 'rgba(0,0,0,0.08)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <Typography variant="subtitle1" sx={{ color: '#fff', mb: 2, display: 'flex', alignItems: 'center' }}>
+                      <StarIcon sx={{ color: '#ffd700', mr: 1 }} /> Your Rating: {form.rating}/5.0
+                    </Typography>
+                    <Slider
+                      value={form.rating}
+                      onChange={handleRatingChange}
+                      min={0}
+                      max={5}
+                      step={0.1}
+                      marks={[
+                        { value: 0, label: '0' },
+                        { value: 2.5, label: '2.5' },
+                        { value: 5, label: '5' }
+                      ]}
                       sx={{
-                        '& .MuiSwitch-switchBase.Mui-checked': {
-                          color: '#e50914',
-                          '&:hover': {
-                            backgroundColor: 'rgba(229, 9, 20, 0.08)',
-                          },
-                        },
-                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                          backgroundColor: '#e50914',
-                        },
+                        color: '#ffd700',
+                        '& .MuiSlider-markLabel': { color: '#fff', fontWeight: 600 },
+                        '& .MuiSlider-track': { background: 'linear-gradient(90deg, #ffd700, #ffed4e)', height: 6 },
+                        '& .MuiSlider-thumb': { background: '#ffd700', boxShadow: '0 4px 12px rgba(255, 215, 0, 0.4)', width: 20, height: 20 },
+                        '& .MuiSlider-rail': { background: 'rgba(255,255,255,0.2)', height: 6 }
                       }}
                     />
-                  }
-                  label={
-                    <Typography sx={{ color: '#fff', display: 'flex', alignItems: 'center', fontSize: '1.1rem', fontWeight: 600 }}>
-                      <TrendingUpIcon sx={{ mr: 1, color: form.recommended ? '#e50914' : '#b3b3b3', fontSize: 24 }} />
-                      Mark as Recommended
-                    </Typography>
-                  }
-                />
-                <Box sx={{ flexGrow: 1 }} />
-                <Button 
-                  type="submit" 
-                  variant="contained" 
-                  color="primary" 
-                  size="large" 
-                  startIcon={<AddIcon />}
-                  sx={{ 
-                    fontWeight: 700, 
-                    letterSpacing: 1,
-                    fontSize: '1.1rem',
-                    px: 4,
-                    py: 1.5,
-                    borderRadius: 2,
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                  <TextField
+                    name="imdbRating"
+                    label="IMDb"
+                    value={form.imdbRating}
+                    onChange={handleChange}
+                    type="number"
+                    error={!!errors.imdbRating}
+                    helperText={errors.imdbRating || '0-10'}
+                    size="large"
+                    fullWidth
+                    inputProps={{ min: 0, max: 10, step: 0.1 }}
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{
+                      style: { color: '#fff', fontSize: '1.1rem' },
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <StarIcon sx={{ color: '#ffd700', fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                  <TextField
+                    name="rottenTomatoesRating"
+                    label="Rotten (%)"
+                    value={form.rottenTomatoesRating}
+                    onChange={handleChange}
+                    type="number"
+                    error={!!errors.rottenTomatoesRating}
+                    helperText={errors.rottenTomatoesRating || '0-100'}
+                    size="large"
+                    fullWidth
+                    inputProps={{ min: 0, max: 100 }}
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{
+                      style: { color: '#fff', fontSize: '1.1rem' },
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PublicIcon sx={{ color: '#ff6b35', fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                  <TextField
+                    name="metacriticRating"
+                    label="Metacritic"
+                    value={form.metacriticRating}
+                    onChange={handleChange}
+                    type="number"
+                    error={!!errors.metacriticRating}
+                    helperText={errors.metacriticRating || '0-100'}
+                    size="large"
+                    fullWidth
+                    inputProps={{ min: 0, max: 100 }}
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{
+                      style: { color: '#fff', fontSize: '1.1rem' },
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <StarIcon sx={{ color: '#00d4aa', fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Streaming Platforms Accordion */}
+          <Accordion 
+            expanded={expanded === 'streaming'} 
+            onChange={handleAccordionChange('streaming')}
+            sx={{ 
+              mb: 2, 
+              background: 'rgba(35,35,54,0.95)',
+              border: '1px solid rgba(229, 9, 20, 0.2)',
+              borderRadius: 2,
+              '&:before': { display: 'none' },
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: '#fff' }} />}
+              sx={{ 
+                background: 'rgba(0,0,0,0.3)',
+                color: '#fff',
+                borderRadius: '8px 8px 0 0'
+              }}
+            >
+              <Typography variant="h5" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TvIcon sx={{ fontSize: 28, color: '#e50914' }} /> Streaming Platforms
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 4 }}>
+              <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+                <FormControl fullWidth sx={{ maxWidth: 300 }}>
+                  <InputLabel sx={{ color: '#fff' }}>Add Platform</InputLabel>
+                  <Select
+                    value={newPlatform}
+                    onChange={(e) => setNewPlatform(e.target.value)}
+                    sx={{ color: '#fff', '& .MuiSvgIcon-root': { color: '#fff' } }}
+                  >
+                    {STREAMING_PLATFORMS.map(platform => (
+                      <MenuItem key={platform} value={platform} sx={{ fontSize: '1rem' }}>
+                        {platform}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <Button
+                  variant="contained"
+                  onClick={handleAddPlatform}
+                  disabled={!newPlatform}
+                  sx={{
                     background: 'linear-gradient(45deg, #e50914, #ff6b6b)',
-                    boxShadow: '0 4px 16px rgba(229, 9, 20, 0.3)',
                     '&:hover': {
                       background: 'linear-gradient(45deg, #ff6b6b, #e50914)',
-                      boxShadow: '0 6px 20px rgba(229, 9, 20, 0.4)',
                     }
                   }}
                 >
-                  Add Movie
+                  Add
                 </Button>
-              </Paper>
-            </Grid>
-          </Grid>
+              </Box>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {form.streamingPlatforms.map((platform, index) => (
+                  <Chip
+                    key={index}
+                    label={platform}
+                    onDelete={() => handleRemovePlatform(platform)}
+                    deleteIcon={<DeleteIcon />}
+                    sx={{
+                      background: 'linear-gradient(45deg, #e50914, #ff6b6b)',
+                      color: '#fff',
+                      fontWeight: 600,
+                      '& .MuiChip-deleteIcon': {
+                        color: '#fff',
+                        '&:hover': {
+                          color: '#ffd700',
+                        }
+                      }
+                    }}
+                  />
+                ))}
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Additional Information Accordion */}
+          <Accordion 
+            expanded={expanded === 'additional'} 
+            onChange={handleAccordionChange('additional')}
+            sx={{ 
+              mb: 2, 
+              background: 'rgba(35,35,54,0.95)',
+              border: '1px solid rgba(229, 9, 20, 0.2)',
+              borderRadius: 2,
+              '&:before': { display: 'none' },
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+            }}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{ color: '#fff' }} />}
+              sx={{ 
+                background: 'rgba(0,0,0,0.3)',
+                color: '#fff',
+                borderRadius: '8px 8px 0 0'
+              }}
+            >
+              <Typography variant="h5" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <NotesIcon sx={{ fontSize: 28, color: '#e50914' }} /> Additional Information
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 4 }}>
+              <Grid container spacing={3} alignItems="center">
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="director"
+                    label="Director"
+                    value={form.director}
+                    onChange={handleChange}
+                    helperText="e.g. Christopher Nolan"
+                    size="large"
+                    fullWidth
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{ style: { color: '#fff', fontSize: '1.1rem' } }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="cast"
+                    label="Cast"
+                    value={form.cast}
+                    onChange={handleChange}
+                    helperText="e.g. Leonardo DiCaprio, Ellen Page"
+                    size="large"
+                    fullWidth
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{ style: { color: '#fff', fontSize: '1.1rem' } }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="runtime"
+                    label="Runtime (minutes)"
+                    value={form.runtime}
+                    onChange={handleChange}
+                    type="number"
+                    helperText="e.g. 120"
+                    size="large"
+                    fullWidth
+                    inputProps={{ min: 1, max: 999 }}
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{ style: { color: '#fff', fontSize: '1.1rem' }, startAdornment: (
+                      <InputAdornment position="start">
+                        <AccessTime sx={{ color: 'primary.main', fontSize: 20 }} />
+                      </InputAdornment>
+                    ) }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="budget"
+                    label="Budget"
+                    value={form.budget}
+                    onChange={handleChange}
+                    helperText="e.g. $160 million"
+                    size="large"
+                    fullWidth
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{ style: { color: '#fff', fontSize: '1.1rem' } }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="boxOffice"
+                    label="Box Office"
+                    value={form.boxOffice}
+                    onChange={handleChange}
+                    helperText="e.g. $836 million"
+                    size="large"
+                    fullWidth
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{ style: { color: '#fff', fontSize: '1.1rem' } }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="awards"
+                    label="Awards"
+                    value={form.awards}
+                    onChange={handleChange}
+                    helperText="e.g. Academy Award for Best Picture"
+                    size="large"
+                    fullWidth
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{ style: { color: '#fff', fontSize: '1.1rem' } }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="trailerUrl"
+                    label="Trailer URL"
+                    value={form.trailerUrl}
+                    onChange={handleChange}
+                    helperText="e.g. https://youtube.com/watch?v=..."
+                    size="large"
+                    fullWidth
+                    InputLabelProps={{ style: { color: '#fff', fontWeight: 600 }, shrink: true }}
+                    InputProps={{ style: { color: '#fff', fontSize: '1.1rem' } }}
+                  />
+                </Grid>
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Recommended Switch & Submit */}
+          <Paper elevation={2} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 4, mb: 0, boxShadow: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, background: 'rgba(35,35,54,0.95)', border: '1px solid rgba(229, 9, 20, 0.2)' }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={form.recommended}
+                  onChange={handleRecommendedChange}
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: '#e50914',
+                      '&:hover': {
+                        backgroundColor: 'rgba(229, 9, 20, 0.08)',
+                      },
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: '#e50914',
+                    },
+                  }}
+                />
+              }
+              label={
+                <Typography sx={{ color: '#fff', display: 'flex', alignItems: 'center', fontSize: '1.1rem', fontWeight: 600 }}>
+                  <TrendingUpIcon sx={{ mr: 1, color: form.recommended ? '#e50914' : '#b3b3b3', fontSize: 24 }} />
+                  Mark as Recommended
+                </Typography>
+              }
+            />
+            <Box sx={{ flexGrow: 1 }} />
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary" 
+              size="large" 
+              startIcon={<AddIcon />}
+              sx={{ 
+                fontWeight: 700, 
+                letterSpacing: 1,
+                fontSize: '1.1rem',
+                px: 4,
+                py: 1.5,
+                borderRadius: 2,
+                background: 'linear-gradient(45deg, #e50914, #ff6b6b)',
+                boxShadow: '0 4px 16px rgba(229, 9, 20, 0.3)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #ff6b6b, #e50914)',
+                  boxShadow: '0 6px 20px rgba(229, 9, 20, 0.4)',
+                }
+              }}
+            >
+              Add Movie
+            </Button>
+          </Paper>
         </form>
       </Container>
       <Snackbar 

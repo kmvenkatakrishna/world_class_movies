@@ -77,21 +77,51 @@ function Header({ searchTerm, setSearchTerm }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [languages, setLanguages] = useState([]);
 
-  useEffect(() => {
+  const loadLanguages = () => {
     const stored = localStorage.getItem(LOCAL_KEY);
     if (stored) {
       const movies = JSON.parse(stored);
-      console.log('Debug - Header: All movies from localStorage:', movies);
+      console.log('Header Debug - All movies from localStorage:', movies);
       const langCount = {};
       movies.forEach(movie => {
         if (movie.language) {
           const lang = movie.language.trim();
           langCount[lang] = (langCount[lang] || 0) + 1;
+          console.log('Header Debug - Found language:', lang, 'for movie:', movie.title);
         }
       });
-      console.log('Debug - Header: Language counts:', langCount);
+      console.log('Header Debug - Language counts:', langCount);
       setLanguages(Object.entries(langCount).sort((a, b) => b[1] - a[1]));
+    } else {
+      console.log('Header Debug - No movies found in localStorage');
     }
+  };
+
+  useEffect(() => {
+    loadLanguages();
+  }, []);
+
+  // Listen for localStorage changes
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === LOCAL_KEY) {
+        loadLanguages();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom events (for same-tab updates)
+    const handleCustomStorageChange = () => {
+      loadLanguages();
+    };
+    
+    window.addEventListener('localStorageChange', handleCustomStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageChange', handleCustomStorageChange);
+    };
   }, []);
 
   const handleMenuOpen = (event) => {
@@ -103,7 +133,9 @@ function Header({ searchTerm, setSearchTerm }) {
   };
 
   const handleLanguageSelect = (language) => {
-    navigate(`/language/${encodeURIComponent(language)}`);
+    const url = `/language/${encodeURIComponent(language)}`;
+    console.log('Header Debug - Navigating to:', url, 'for language:', language);
+    navigate(url);
     handleMenuClose();
   };
 

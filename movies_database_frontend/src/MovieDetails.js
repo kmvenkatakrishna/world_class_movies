@@ -20,7 +20,11 @@ import {
   ListItemIcon,
   ListItemText,
   Fade,
-  Skeleton
+  Skeleton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import {
   ArrowBack,
@@ -124,6 +128,7 @@ function MovieDetails() {
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(LOCAL_KEY);
@@ -143,6 +148,19 @@ function MovieDetails() {
       localStorage.setItem(LOCAL_KEY, JSON.stringify(updatedMovies));
       navigate('/');
     }
+  };
+
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    handleDelete();
+    setDeleteDialogOpen(false);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
   };
 
   const getStreamingPlatforms = (movie) => {
@@ -307,7 +325,7 @@ function MovieDetails() {
                         <Share />
                       </IconButton>
                       <IconButton
-                        onClick={handleDelete}
+                        onClick={handleDeleteClick}
                         sx={{
                           color: '#e50914',
                           background: 'rgba(0,0,0,0.5)',
@@ -823,6 +841,29 @@ function MovieDetails() {
           </Grid>
         </Grid>
       </Container>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography id="delete-dialog-description">
+            Are you sure you want to delete "{movie.title}"? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
