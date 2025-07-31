@@ -43,7 +43,8 @@ import {
   LocalMovies,
   Tv,
   Computer,
-  Phone
+  Phone,
+  Animation
 } from '@mui/icons-material';
 
 const LOCAL_KEY = 'movies_db';
@@ -229,10 +230,10 @@ function MovieDetails() {
         <Container maxWidth="sm" sx={{ textAlign: 'center' }}>
           <Movie sx={{ fontSize: 80, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
           <Typography variant="h4" sx={{ color: '#fff', mb: 2 }}>
-            Movie Not Found
+            Content Not Found
           </Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary', mb: 3 }}>
-            The movie you're looking for doesn't exist in our database.
+            The content you're looking for doesn't exist in our database.
           </Typography>
           <Button
             variant="contained"
@@ -289,13 +290,17 @@ function MovieDetails() {
                 }}>
                   <Box sx={{ 
                     height: 300,
-                    background: `linear-gradient(135deg, #232336 0%, #e50914 100%)`,
+                    background: movie.type === 'movie' ? `linear-gradient(135deg, #232336 0%, #e50914 100%)` :
+                             movie.type === 'series' ? `linear-gradient(135deg, #232336 0%, #009688 100%)` :
+                             `linear-gradient(135deg, #232336 0%, #9c27b0 100%)`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     position: 'relative'
                   }}>
-                    <Movie sx={{ fontSize: 120, color: '#fff', opacity: 0.1 }} />
+                    {movie.type === 'movie' ? <Movie sx={{ fontSize: 120, color: '#fff', opacity: 0.1 }} /> :
+                     movie.type === 'series' ? <Tv sx={{ fontSize: 120, color: '#fff', opacity: 0.1 }} /> :
+                     <Animation sx={{ fontSize: 120, color: '#fff', opacity: 0.1 }} />}
                     
                     {/* Action Buttons */}
                     <Box sx={{ 
@@ -377,6 +382,17 @@ function MovieDetails() {
                             label={movie.genre} 
                             sx={{ 
                               background: 'linear-gradient(45deg, #e50914, #ff6b6b)',
+                              color: '#fff',
+                              fontWeight: 600,
+                              fontSize: '0.9rem'
+                            }} 
+                          />
+                          <Chip 
+                            label={movie.type === 'movie' ? 'Movie' : movie.type === 'series' ? 'TV Series' : 'Anime'}
+                            sx={{ 
+                              background: movie.type === 'movie' ? 'linear-gradient(45deg, #e50914, #ff6b6b)' :
+                                       movie.type === 'series' ? 'linear-gradient(45deg, #009688, #00bcd4)' :
+                                       'linear-gradient(45deg, #9c27b0, #e91e63)',
                               color: '#fff',
                               fontWeight: 600,
                               fontSize: '0.9rem'
@@ -568,7 +584,7 @@ function MovieDetails() {
                    </CardContent>
                  </Card>
 
-                 {/* Movie Details */}
+                 {/* Content Details */}
                  {(movie.director || movie.cast || movie.runtime || movie.budget || movie.boxOffice || movie.awards) && (
                    <Card sx={{ 
                      borderRadius: 4, 
@@ -579,7 +595,7 @@ function MovieDetails() {
                    }}>
                      <CardContent sx={{ p: 4 }}>
                        <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700, mb: 3 }}>
-                         Movie Details
+                         {movie.type === 'movie' ? 'Movie' : movie.type === 'series' ? 'Series' : 'Anime'} Details
                        </Typography>
                        <Grid container spacing={3}>
                          {movie.director && (
@@ -831,7 +847,7 @@ function MovieDetails() {
                           }
                         }}
                       >
-                        Edit Movie
+                        Edit {movie.type === 'movie' ? 'Movie' : movie.type === 'series' ? 'Series' : 'Anime'}
                       </Button>
                     </Stack>
                   </CardContent>

@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import {
   Container, Typography, TextField, Button, MenuItem, Select, InputLabel, FormControl, FormHelperText, Snackbar, Alert, InputAdornment, Switch, FormControlLabel, Slider, Box, Grid, Card, CardContent, Divider, Chip, IconButton, Paper, Stepper, Step, StepLabel, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import MovieIcon from '@mui/icons-material/Movie';
+import TvIcon from '@mui/icons-material/Tv';
+import AnimationIcon from '@mui/icons-material/Animation';
 import LanguageIcon from '@mui/icons-material/Language';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import NotesIcon from '@mui/icons-material/Notes';
@@ -12,12 +14,17 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
-import TvIcon from '@mui/icons-material/Tv';
 import PublicIcon from '@mui/icons-material/Public';
 import AccessTime from '@mui/icons-material/AccessTime';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const LOCAL_KEY = 'movies_db';
+const CONTENT_TYPES = [
+  { value: 'movie', label: 'Movie', icon: <MovieIcon /> },
+  { value: 'series', label: 'TV Series', icon: <TvIcon /> },
+  { value: 'anime', label: 'Anime', icon: <AnimationIcon /> }
+];
+
 const GENRES = [
   'Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Drama', 'Fantasy', 'Horror', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'Other'
 ];
@@ -44,6 +51,9 @@ const SECTIONS = [
 ];
 
 function AddMovie() {
+  const [searchParams] = useSearchParams();
+  const defaultType = searchParams.get('type') || 'movie';
+  
   const [form, setForm] = useState({ 
     title: '', 
     language: '', 
@@ -62,7 +72,8 @@ function AddMovie() {
     budget: '',
     boxOffice: '',
     awards: '',
-    trailerUrl: ''
+    trailerUrl: '',
+    type: defaultType // Set default type from URL parameter
   });
   const [errors, setErrors] = useState({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -79,6 +90,7 @@ function AddMovie() {
     if (!form.title.trim()) newErrors.title = 'Title is required';
     if (!form.language.trim()) newErrors.language = 'Language is required';
     if (!form.genre) newErrors.genre = 'Genre is required';
+    if (!form.type) newErrors.type = 'Content type is required';
     if (form.year && (isNaN(form.year) || form.year < 1800 || form.year > new Date().getFullYear() + 1)) newErrors.year = 'Enter a valid year';
     if (form.imdbRating && (isNaN(form.imdbRating) || form.imdbRating < 0 || form.imdbRating > 10)) newErrors.imdbRating = 'IMDb rating must be between 0-10';
     if (form.rottenTomatoesRating && (isNaN(form.rottenTomatoesRating) || form.rottenTomatoesRating < 0 || form.rottenTomatoesRating > 100)) newErrors.rottenTomatoesRating = 'Rotten Tomatoes rating must be between 0-100';
@@ -168,7 +180,7 @@ function AddMovie() {
               mb: 1
             }}
           >
-            Add New Movie
+            Add New {form.type === 'movie' ? 'Movie' : form.type === 'series' ? 'TV Series' : 'Anime'}
           </Typography>
           <Typography 
             variant="h6" 
@@ -178,7 +190,7 @@ function AddMovie() {
               opacity: 0.8
             }}
           >
-            Share your favorite movies with the community
+            Share your favorite {form.type === 'movie' ? 'movies' : form.type === 'series' ? 'TV series' : 'anime'} with the community
           </Typography>
         </Box>
 
@@ -192,6 +204,35 @@ function AddMovie() {
         </Stepper>
 
         <form onSubmit={handleSubmit} autoComplete="off">
+          {/* Content Type Selector */}
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+            {CONTENT_TYPES.map(type => (
+              <Button
+                key={type.value}
+                variant={form.type === type.value ? 'contained' : 'outlined'}
+                startIcon={type.icon}
+                onClick={() => setForm(prev => ({ ...prev, type: type.value }))}
+                sx={{
+                  color: '#fff',
+                  border: '1px solid rgba(229, 9, 20, 0.2)',
+                  borderRadius: 2,
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #e50914, #ff6b6b)',
+                    borderColor: 'rgba(229, 9, 20, 0.5)',
+                  },
+                  '&.MuiButton-contained': {
+                    background: 'linear-gradient(45deg, #e50914, #ff6b6b)',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #ff6b6b, #e50914)',
+                    },
+                  }
+                }}
+              >
+                {type.label}
+              </Button>
+            ))}
+          </Box>
+
           {/* Basic Information Accordion - Always Expanded */}
           <Accordion 
             expanded={expanded === 'basic'} 
@@ -707,7 +748,7 @@ function AddMovie() {
                 }
               }}
             >
-              Add Movie
+              Add {form.type === 'movie' ? 'Movie' : form.type === 'series' ? 'Series' : 'Anime'}
             </Button>
           </Paper>
         </form>
@@ -727,7 +768,7 @@ function AddMovie() {
             fontWeight: 600
           }}
         >
-          Movie added successfully! Redirecting to home...
+          {form.type === 'movie' ? 'Movie' : form.type === 'series' ? 'Series' : 'Anime'} added successfully! Redirecting to home...
         </Alert>
       </Snackbar>
     </Box>

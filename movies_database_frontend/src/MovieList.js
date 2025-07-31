@@ -15,6 +15,8 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MovieIcon from '@mui/icons-material/Movie';
+import TvIcon from '@mui/icons-material/Tv';
+import AnimationIcon from '@mui/icons-material/Animation';
 import StarIcon from '@mui/icons-material/Star';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -23,7 +25,15 @@ const LOCAL_KEY = 'movies_db';
 
 function getInitialMovies() {
   const stored = localStorage.getItem(LOCAL_KEY);
-  if (stored) return JSON.parse(stored);
+  if (stored) {
+    const storedMovies = JSON.parse(stored);
+    // If we have stored movies, return them
+    if (storedMovies.length > 0) {
+      return storedMovies;
+    }
+  }
+  
+  // Only return sample data if localStorage is empty
   return [
     { 
       _id: '1', 
@@ -33,7 +43,8 @@ function getInitialMovies() {
       year: 2010, 
       description: 'A mind-bending thriller about dreams within dreams.',
       rating: 4.8,
-      recommended: true
+      recommended: true,
+      type: 'movie'
     },
     { 
       _id: '2', 
@@ -43,7 +54,8 @@ function getInitialMovies() {
       year: 2019, 
       description: 'Oscar-winning drama about class struggle.',
       rating: 4.9,
-      recommended: true
+      recommended: true,
+      type: 'movie'
     },
     { 
       _id: '3', 
@@ -53,7 +65,8 @@ function getInitialMovies() {
       year: 2008, 
       description: 'Batman faces his greatest challenge.',
       rating: 4.7,
-      recommended: true
+      recommended: true,
+      type: 'movie'
     },
     { 
       _id: '4', 
@@ -63,7 +76,8 @@ function getInitialMovies() {
       year: 2016, 
       description: 'A musical romance in modern Los Angeles.',
       rating: 4.6,
-      recommended: false
+      recommended: false,
+      type: 'movie'
     },
     { 
       _id: '5', 
@@ -73,7 +87,8 @@ function getInitialMovies() {
       year: 2014, 
       description: 'Space exploration to save humanity.',
       rating: 4.5,
-      recommended: false
+      recommended: false,
+      type: 'movie'
     },
     { 
       _id: '6', 
@@ -83,7 +98,30 @@ function getInitialMovies() {
       year: 2014, 
       description: 'A retired hitman seeks revenge.',
       rating: 4.4,
-      recommended: false
+      recommended: false,
+      type: 'movie'
+    },
+    { 
+      _id: '7', 
+      title: 'Breaking Bad', 
+      language: 'English', 
+      genre: 'Drama', 
+      year: 2008, 
+      description: 'A high school chemistry teacher turned methamphetamine manufacturer.',
+      rating: 4.9,
+      recommended: true,
+      type: 'series'
+    },
+    { 
+      _id: '8', 
+      title: 'Attack on Titan', 
+      language: 'Japanese', 
+      genre: 'Action', 
+      year: 2013, 
+      description: 'Humanity fights for survival against giant humanoid creatures.',
+      rating: 4.8,
+      recommended: true,
+      type: 'anime'
     }
   ];
 }
@@ -92,7 +130,8 @@ function MovieCard({ movie, onDelete }) {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    navigate(`/movie/${movie._id}`);
+    const route = movie.type === 'movie' ? '/movie' : movie.type === 'series' ? '/series' : '/anime';
+    navigate(`${route}/${movie._id}`);
   };
 
   return (
@@ -155,6 +194,23 @@ function MovieCard({ movie, onDelete }) {
             <Typography variant="caption" sx={{ color: '#fff', fontWeight: 600 }}>
               {movie.rating}
             </Typography>
+          </Box>
+
+          {/* Content Type Badge */}
+          <Box sx={{
+            position: 'absolute',
+            top: 8,
+            right: movie.recommended ? 40 : 8,
+            background: movie.type === 'movie' ? 'rgba(229, 9, 20, 0.8)' : 
+                       movie.type === 'series' ? 'rgba(0, 150, 136, 0.8)' : 
+                       'rgba(156, 39, 176, 0.8)',
+            borderRadius: 1,
+            px: 1,
+            py: 0.5,
+          }}>
+            {movie.type === 'movie' ? <MovieIcon sx={{ fontSize: 16, color: '#fff' }} /> :
+             movie.type === 'series' ? <TvIcon sx={{ fontSize: 16, color: '#fff' }} /> :
+             <AnimationIcon sx={{ fontSize: 16, color: '#fff' }} />}
           </Box>
 
           {/* Recommended Badge */}
@@ -229,11 +285,11 @@ function MovieCard({ movie, onDelete }) {
   );
 }
 
-function MovieSection({ title, movies, onDelete, icon }) {
+function MovieSection({ title, movies, onDelete, icon, noTopMargin = false }) {
   if (movies.length === 0) return null;
 
   return (
-    <Box sx={{ mb: 6 }}>
+    <Box sx={{ mb: 6, mt: noTopMargin ? 0 : 0 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
         {icon}
         <Typography 
@@ -269,13 +325,38 @@ function MovieSection({ title, movies, onDelete, icon }) {
   );
 }
 
-function MovieList({ searchTerm = '' }) {
+function MovieList({ searchTerm = '', contentType = null }) {
   const [movies, setMovies] = useState(getInitialMovies());
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [movieToDelete, setMovieToDelete] = useState(null);
 
+  // Initial load from localStorage
+  useEffect(() => {
+    const loadFromStorage = () => {
+      const stored = localStorage.getItem(LOCAL_KEY);
+      if (stored) {
+        const storedMovies = JSON.parse(stored);
+        if (storedMovies.length > 0) {
+          // Ensure all movies have a type field
+          const processedMovies = storedMovies.map(movie => ({
+            ...movie,
+            type: movie.type || 'movie' // Default to 'movie' if type is missing
+          }));
+          console.log(`Loaded ${processedMovies.length} movies from localStorage`);
+          setMovies(processedMovies);
+          
+          // Update localStorage with the processed movies
+          localStorage.setItem(LOCAL_KEY, JSON.stringify(processedMovies));
+        }
+      }
+    };
+    
+    loadFromStorage();
+  }, []);
+
   useEffect(() => {
     localStorage.setItem(LOCAL_KEY, JSON.stringify(movies));
+    console.log(`Updated localStorage with ${movies.length} movies`);
   }, [movies]);
 
   // Listen for localStorage changes from other components
@@ -284,7 +365,13 @@ function MovieList({ searchTerm = '' }) {
       if (e.key === LOCAL_KEY) {
         const stored = localStorage.getItem(LOCAL_KEY);
         if (stored) {
-          setMovies(JSON.parse(stored));
+          const storedMovies = JSON.parse(stored);
+          // Ensure all movies have a type field
+          const processedMovies = storedMovies.map(movie => ({
+            ...movie,
+            type: movie.type || 'movie' // Default to 'movie' if type is missing
+          }));
+          setMovies(processedMovies);
         }
       }
     };
@@ -294,7 +381,13 @@ function MovieList({ searchTerm = '' }) {
     const handleCustomStorageChange = () => {
       const stored = localStorage.getItem(LOCAL_KEY);
       if (stored) {
-        setMovies(JSON.parse(stored));
+        const storedMovies = JSON.parse(stored);
+        // Ensure all movies have a type field
+        const processedMovies = storedMovies.map(movie => ({
+          ...movie,
+          type: movie.type || 'movie' // Default to 'movie' if type is missing
+        }));
+        setMovies(processedMovies);
       }
     };
     
@@ -331,23 +424,45 @@ function MovieList({ searchTerm = '' }) {
 
   const filteredMovies = movies.filter(movie => {
     const term = searchTerm.trim().toLowerCase();
-    if (!term) return true;
-    return (
-      (movie.title && movie.title.toLowerCase().includes(term)) ||
-      (movie.genre && movie.genre.toLowerCase().includes(term))
-    );
+    const movieType = movie.type || 'movie'; // Default to 'movie' if type is missing
+    
+    // Filter by content type if specified
+    if (contentType && movieType !== contentType) {
+      return false;
+    }
+    
+    // Filter by search term if specified
+    if (term) {
+      return (
+        (movie.title && movie.title.toLowerCase().includes(term)) ||
+        (movie.genre && movie.genre.toLowerCase().includes(term))
+      );
+    }
+    
+    return true;
   });
 
-  // Group movies by genre
-  const moviesByGenre = filteredMovies.reduce((acc, movie) => {
-    const genre = movie.genre || 'Other';
-    if (!acc[genre]) acc[genre] = [];
-    acc[genre].push(movie);
+  // Group content by type
+  const contentByType = filteredMovies.reduce((acc, item) => {
+    const type = item.type || 'movie'; // Default to 'movie' if type is missing
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(item);
     return acc;
   }, {});
 
-  // Get recommended movies
-  const recommendedMovies = filteredMovies.filter(movie => movie.recommended);
+  // Group movies by genre within each type
+  const contentByTypeAndGenre = {};
+  Object.entries(contentByType).forEach(([type, items]) => {
+    contentByTypeAndGenre[type] = items.reduce((acc, item) => {
+      const genre = item.genre || 'Other';
+      if (!acc[genre]) acc[genre] = [];
+      acc[genre].push(item);
+      return acc;
+    }, {});
+  });
+
+  // Get recommended content
+  const recommendedContent = filteredMovies.filter(item => item.recommended);
 
   if (filteredMovies.length === 0) {
     return (
@@ -364,33 +479,73 @@ function MovieList({ searchTerm = '' }) {
           color="text.secondary" 
           sx={{ fontStyle: 'italic', textAlign: 'center' }}
         >
-          No movies found.
+          No content found.
         </Typography>
       </Box>
     );
   }
 
+  const getTypeIcon = (type) => {
+    switch(type) {
+      case 'movie': return <MovieIcon sx={{ fontSize: 32, color: 'primary.main' }} />;
+      case 'series': return <TvIcon sx={{ fontSize: 32, color: '#009688' }} />;
+      case 'anime': return <AnimationIcon sx={{ fontSize: 32, color: '#9c27b0' }} />;
+      default: return <MovieIcon sx={{ fontSize: 32, color: 'primary.main' }} />;
+    }
+  };
+
+  const getTypeTitle = (type) => {
+    switch(type) {
+      case 'movie': return 'Movies';
+      case 'series': return 'TV Series';
+      case 'anime': return 'Anime';
+      default: return 'Movies';
+    }
+  };
+
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%', pt: 2 }}>
       {/* Recommended Section */}
-      {recommendedMovies.length > 0 && (
+      {recommendedContent.length > 0 && (
         <MovieSection
           title="Recommended for You"
-          movies={recommendedMovies}
+          movies={recommendedContent}
           onDelete={handleDeleteClick}
           icon={<TrendingUpIcon sx={{ fontSize: 32, color: 'primary.main' }} />}
+          noTopMargin={true}
         />
       )}
 
-      {/* Genre Sections */}
-      {Object.entries(moviesByGenre).map(([genre, genreMovies]) => (
-        <MovieSection
-          key={genre}
-          title={genre}
-          movies={genreMovies}
-          onDelete={handleDeleteClick}
-          icon={<MovieIcon sx={{ fontSize: 32, color: 'primary.main' }} />}
-        />
+      {/* Content by Type and Genre */}
+      {Object.entries(contentByTypeAndGenre).map(([type, genres]) => (
+        <Box key={type} sx={{ mb: 6 }}>
+          {/* Type Header */}
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            {getTypeIcon(type)}
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                fontWeight: 700, 
+                color: '#fff', 
+                ml: 1,
+                fontSize: { xs: '1.5rem', sm: '2rem' }
+              }}
+            >
+              {getTypeTitle(type)}
+            </Typography>
+          </Box>
+          
+          {/* Genre Sections within Type */}
+          {Object.entries(genres).map(([genre, genreItems]) => (
+            <MovieSection
+              key={`${type}-${genre}`}
+              title={genre}
+              movies={genreItems}
+              onDelete={handleDeleteClick}
+              icon={getTypeIcon(type)}
+            />
+          ))}
+        </Box>
       ))}
 
       {/* Delete Confirmation Dialog */}

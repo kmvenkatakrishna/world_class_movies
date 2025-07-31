@@ -188,6 +188,28 @@ function Header({ searchTerm, setSearchTerm }) {
           >
             Movie Database
           </Typography>
+          
+          {/* Movies Navigation Button */}
+          <Button
+            onClick={() => navigate('/movies')}
+            sx={{
+              color: '#fff',
+              textDecoration: 'none',
+              marginRight: 2,
+              fontWeight: 600,
+              fontSize: '1.15rem',
+              letterSpacing: 0.5,
+              transition: 'color 0.2s',
+              textTransform: 'none',
+              '&:hover': {
+                color: '#e50914',
+                backgroundColor: 'rgba(229,9,20,0.1)',
+              },
+            }}
+          >
+            Movies
+          </Button>
+          
           <Box
             onMouseEnter={handleMenuOpen}
             onMouseLeave={handleMenuClose}
@@ -250,7 +272,7 @@ function Header({ searchTerm, setSearchTerm }) {
                   </ListItemIcon>
                   <ListItemText 
                     primary={lang} 
-                    secondary={count > 0 ? `${count} movie${count > 1 ? 's' : ''}` : 'No movies yet'}
+                    secondary={count > 0 ? `${count} content` : 'No content yet'}
                     primaryTypographyProps={{
                       sx: { fontWeight: 600, fontSize: '1rem' }
                     }}
@@ -261,6 +283,82 @@ function Header({ searchTerm, setSearchTerm }) {
                 </MenuItem>
               ))}
             </Menu>
+          </Box>
+          
+          {/* Content Type Navigation */}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              onClick={() => navigate('/movies')}
+              sx={{
+                color: '#fff',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '1rem',
+                letterSpacing: 0.5,
+                transition: 'color 0.2s',
+                textTransform: 'none',
+                '&:hover': {
+                  color: '#e50914',
+                  backgroundColor: 'rgba(229,9,20,0.1)',
+                },
+              }}
+            >
+              All
+            </Button>
+            <Button
+              onClick={() => navigate('/movies?type=movie')}
+              sx={{
+                color: '#fff',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '1rem',
+                letterSpacing: 0.5,
+                transition: 'color 0.2s',
+                textTransform: 'none',
+                '&:hover': {
+                  color: '#e50914',
+                  backgroundColor: 'rgba(229,9,20,0.1)',
+                },
+              }}
+            >
+              Movies
+            </Button>
+            <Button
+              onClick={() => navigate('/movies?type=series')}
+              sx={{
+                color: '#fff',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '1rem',
+                letterSpacing: 0.5,
+                transition: 'color 0.2s',
+                textTransform: 'none',
+                '&:hover': {
+                  color: '#009688',
+                  backgroundColor: 'rgba(0,150,136,0.1)',
+                },
+              }}
+            >
+              Series
+            </Button>
+            <Button
+              onClick={() => navigate('/movies?type=anime')}
+              sx={{
+                color: '#fff',
+                textDecoration: 'none',
+                fontWeight: 600,
+                fontSize: '1rem',
+                letterSpacing: 0.5,
+                transition: 'color 0.2s',
+                textTransform: 'none',
+                '&:hover': {
+                  color: '#9c27b0',
+                  backgroundColor: 'rgba(156,39,176,0.1)',
+                },
+              }}
+            >
+              Anime
+            </Button>
           </Box>
         </Box>
         <Search sx={{
