@@ -17,6 +17,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import PublicIcon from '@mui/icons-material/Public';
 import AccessTime from '@mui/icons-material/AccessTime';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import PhotoIcon from '@mui/icons-material/Photo';
+import ImageIcon from '@mui/icons-material/Image';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 const LOCAL_KEY = 'movies_db';
 const CONTENT_TYPES = [
@@ -73,12 +76,17 @@ function AddMovie() {
     boxOffice: '',
     awards: '',
     trailerUrl: '',
-    type: defaultType // Set default type from URL parameter
+    type: defaultType, // Set default type from URL parameter
+    thumbnail: null,
+    photo: null
   });
   const [errors, setErrors] = useState({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [newPlatform, setNewPlatform] = useState('');
   const [expanded, setExpanded] = useState('basic'); // Only basic section expanded by default
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [uploadErrors, setUploadErrors] = useState({});
   const navigate = useNavigate();
 
   const handleAccordionChange = (panel) => (event, isExpanded) => {
@@ -96,6 +104,60 @@ function AddMovie() {
     if (form.rottenTomatoesRating && (isNaN(form.rottenTomatoesRating) || form.rottenTomatoesRating < 0 || form.rottenTomatoesRating > 100)) newErrors.rottenTomatoesRating = 'Rotten Tomatoes rating must be between 0-100';
     if (form.metacriticRating && (isNaN(form.metacriticRating) || form.metacriticRating < 0 || form.metacriticRating > 100)) newErrors.metacriticRating = 'Metacritic rating must be between 0-100';
     return newErrors;
+  };
+
+  const validateFile = (file, type) => {
+    const maxSize = type === 'thumbnail' ? 2 * 1024 * 1024 : 5 * 1024 * 1024; // 2MB for thumbnail, 5MB for photo
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    
+    if (!allowedTypes.includes(file.type)) {
+      return `${type === 'thumbnail' ? 'Thumbnail' : 'Photo'} must be JPEG, PNG, or WebP format`;
+    }
+    
+    if (file.size > maxSize) {
+      return `${type === 'thumbnail' ? 'Thumbnail' : 'Photo'} size must be less than ${type === 'thumbnail' ? '2MB' : '5MB'}`;
+    }
+    
+    return null;
+  };
+
+  const handleFileUpload = (event, type) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const error = validateFile(file, type);
+    if (error) {
+      setUploadErrors(prev => ({ ...prev, [type]: error }));
+      return;
+    }
+
+    // Clear any previous errors
+    setUploadErrors(prev => ({ ...prev, [type]: null }));
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (type === 'thumbnail') {
+        setThumbnailPreview(e.target.result);
+      } else {
+        setPhotoPreview(e.target.result);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // Update form state
+    setForm(prev => ({ ...prev, [type]: file }));
+  };
+
+  const removeFile = (type) => {
+    if (type === 'thumbnail') {
+      setThumbnailPreview(null);
+      setForm(prev => ({ ...prev, thumbnail: null }));
+    } else {
+      setPhotoPreview(null);
+      setForm(prev => ({ ...prev, photo: null }));
+    }
+    setUploadErrors(prev => ({ ...prev, [type]: null }));
   };
 
   const handleChange = e => {
@@ -129,25 +191,58 @@ function AddMovie() {
       setErrors(newErrors);
       return;
     }
+
+    // Check for upload errors
+    if (Object.keys(uploadErrors).some(key => uploadErrors[key])) {
+      return;
+    }
+
     const stored = localStorage.getItem(LOCAL_KEY);
     const movies = stored ? JSON.parse(stored) : [];
-    const newMovie = { 
-      ...form, 
-      year: form.year ? Number(form.year) : '', 
-      rating: Number(form.rating),
-      imdbRating: form.imdbRating ? Number(form.imdbRating) : null,
-      rottenTomatoesRating: form.rottenTomatoesRating ? Number(form.rottenTomatoesRating) : null,
-      metacriticRating: form.metacriticRating ? Number(form.metacriticRating) : null,
-      _id: Date.now().toString() 
+    
+    // Convert images to base64 for storage
+    const processImage = (file) => {
+      return new Promise((resolve) => {
+        if (!file) {
+          resolve(null);
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.readAsDataURL(file);
+      });
     };
-    movies.push(newMovie);
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(movies));
-    
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new Event('localStorageChange'));
-    
-    setSnackbarOpen(true);
-    setTimeout(() => navigate('/'), 1000);
+
+    // Process images and create movie object
+    Promise.all([
+      processImage(form.thumbnail),
+      processImage(form.photo)
+    ]).then(([thumbnailData, photoData]) => {
+      const newMovie = { 
+        ...form, 
+        year: form.year ? Number(form.year) : '', 
+        rating: Number(form.rating),
+        imdbRating: form.imdbRating ? Number(form.imdbRating) : null,
+        rottenTomatoesRating: form.rottenTomatoesRating ? Number(form.rottenTomatoesRating) : null,
+        metacriticRating: form.metacriticRating ? Number(form.metacriticRating) : null,
+        thumbnail: thumbnailData,
+        photo: photoData,
+        _id: Date.now().toString() 
+      };
+      
+      // Remove file objects before storing
+      delete newMovie.thumbnailFile;
+      delete newMovie.photoFile;
+      
+      movies.push(newMovie);
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(movies));
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new Event('localStorageChange'));
+      
+      setSnackbarOpen(true);
+      setTimeout(() => navigate('/'), 1000);
+    });
   };
 
   return (
@@ -361,6 +456,182 @@ function AddMovie() {
                       ),
                     }}
                   />
+                </Grid>
+
+                {/* Image Upload Section */}
+                <Grid item xs={12}>
+                  <Typography variant="h6" sx={{ color: '#fff', mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <PhotoIcon sx={{ color: 'primary.main', fontSize: 24 }} />
+                    Media Upload
+                  </Typography>
+                </Grid>
+
+                {/* Thumbnail Upload */}
+                <Grid item xs={12} sm={6}>
+                  <Card sx={{ 
+                    background: 'rgba(0,0,0,0.2)', 
+                    border: '2px dashed rgba(229, 9, 20, 0.3)',
+                    borderRadius: 2,
+                    p: 2,
+                    textAlign: 'center',
+                    minHeight: 200,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    position: 'relative'
+                  }}>
+                    <CardContent sx={{ p: 0 }}>
+                      {thumbnailPreview ? (
+                        <Box sx={{ position: 'relative' }}>
+                          <img 
+                            src={thumbnailPreview} 
+                            alt="Thumbnail preview" 
+                            style={{ 
+                              width: '100%', 
+                              height: 150, 
+                              objectFit: 'cover', 
+                              borderRadius: 8 
+                            }} 
+                          />
+                          <IconButton
+                            onClick={() => removeFile('thumbnail')}
+                            sx={{
+                              position: 'absolute',
+                              top: 8,
+                              right: 8,
+                              background: 'rgba(0,0,0,0.7)',
+                              color: '#fff',
+                              '&:hover': { background: 'rgba(229, 9, 20, 0.8)' }
+                            }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      ) : (
+                        <Box>
+                          <ImageIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+                          <Typography variant="h6" sx={{ color: '#fff', mb: 1, fontWeight: 600 }}>
+                            Thumbnail
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#b3b3b3', mb: 2 }}>
+                            Recommended: 300x450px<br/>
+                            Max size: 2MB<br/>
+                            Formats: JPEG, PNG, WebP
+                          </Typography>
+                          <Button
+                            variant="outlined"
+                            component="label"
+                            startIcon={<CloudUploadIcon />}
+                            sx={{
+                              color: '#fff',
+                              borderColor: 'rgba(229, 9, 20, 0.5)',
+                              '&:hover': {
+                                borderColor: '#e50914',
+                                background: 'rgba(229, 9, 20, 0.1)'
+                              }
+                            }}
+                          >
+                            Upload Thumbnail
+                            <input
+                              type="file"
+                              hidden
+                              accept="image/jpeg,image/jpg,image/png,image/webp"
+                              onChange={(e) => handleFileUpload(e, 'thumbnail')}
+                            />
+                          </Button>
+                        </Box>
+                      )}
+                      {uploadErrors.thumbnail && (
+                        <Typography variant="body2" sx={{ color: 'error.main', mt: 1, fontSize: '0.8rem' }}>
+                          {uploadErrors.thumbnail}
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Photo Upload */}
+                <Grid item xs={12} sm={6}>
+                  <Card sx={{ 
+                    background: 'rgba(0,0,0,0.2)', 
+                    border: '2px dashed rgba(229, 9, 20, 0.3)',
+                    borderRadius: 2,
+                    p: 2,
+                    textAlign: 'center',
+                    minHeight: 200,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    position: 'relative'
+                  }}>
+                    <CardContent sx={{ p: 0 }}>
+                      {photoPreview ? (
+                        <Box sx={{ position: 'relative' }}>
+                          <img 
+                            src={photoPreview} 
+                            alt="Photo preview" 
+                            style={{ 
+                              width: '100%', 
+                              height: 150, 
+                              objectFit: 'cover', 
+                              borderRadius: 8 
+                            }} 
+                          />
+                          <IconButton
+                            onClick={() => removeFile('photo')}
+                            sx={{
+                              position: 'absolute',
+                              top: 8,
+                              right: 8,
+                              background: 'rgba(0,0,0,0.7)',
+                              color: '#fff',
+                              '&:hover': { background: 'rgba(229, 9, 20, 0.8)' }
+                            }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      ) : (
+                        <Box>
+                          <PhotoIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+                          <Typography variant="h6" sx={{ color: '#fff', mb: 1, fontWeight: 600 }}>
+                            Photo
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: '#b3b3b3', mb: 2 }}>
+                            Recommended: 1920x1080px<br/>
+                            Max size: 5MB<br/>
+                            Formats: JPEG, PNG, WebP
+                          </Typography>
+                          <Button
+                            variant="outlined"
+                            component="label"
+                            startIcon={<CloudUploadIcon />}
+                            sx={{
+                              color: '#fff',
+                              borderColor: 'rgba(229, 9, 20, 0.5)',
+                              '&:hover': {
+                                borderColor: '#e50914',
+                                background: 'rgba(229, 9, 20, 0.1)'
+                              }
+                            }}
+                          >
+                            Upload Photo
+                            <input
+                              type="file"
+                              hidden
+                              accept="image/jpeg,image/jpg,image/png,image/webp"
+                              onChange={(e) => handleFileUpload(e, 'photo')}
+                            />
+                          </Button>
+                        </Box>
+                      )}
+                      {uploadErrors.photo && (
+                        <Typography variant="body2" sx={{ color: 'error.main', mt: 1, fontSize: '0.8rem' }}>
+                          {uploadErrors.photo}
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
                 </Grid>
               </Grid>
             </AccordionDetails>

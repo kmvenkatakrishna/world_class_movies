@@ -190,7 +190,7 @@ function Header({ searchTerm, setSearchTerm }) {
           </Typography>
           
           {/* Movies Navigation Button */}
-          <Button
+          {/* <Button
             onClick={() => navigate('/movies')}
             sx={{
               color: '#fff',
@@ -208,7 +208,7 @@ function Header({ searchTerm, setSearchTerm }) {
             }}
           >
             Movies
-          </Button>
+          </Button> */}
           
           <Box
             onMouseEnter={handleMenuOpen}
